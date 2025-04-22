@@ -53,6 +53,7 @@ public abstract class ClientRequest<N,S> implements Runnable {
         self.start();
 
     }
+
     @Override
     public void run() {
         try {
@@ -64,29 +65,39 @@ public abstract class ClientRequest<N,S> implements Runnable {
             outstream.write(bytes);
 
             int timeout = maxTimeLapToGetAClientReplyInMs;
-            while (0 == instream.available() && 0 < timeout) {
+            while (instream.available() == 0 && timeout > 0) {
                 waitArtifact.pollFirst(timeStepMs, TimeUnit.MILLISECONDS);
-                timeout-=timeStepMs;
+                timeout -= timeStepMs;
             }
-            if (0>timeout) return;
+            if (timeout <= 0) {
+                logger.error("Timeout waiting for server response.");
+                return;
+            }
 
-            final byte [] inputData = new byte[instream.available()];
+            final byte[] inputData = new byte[instream.available()];
             logger.trace("Bytes read = {}", inputData.length);
             instream.read(inputData);
             LoggingUtils.logDataMultiLine(logger, Level.TRACE, inputData);
 
             final ObjectMapper mapper = new ObjectMapper();
             final Response response = mapper.readValue(inputData, Response.class);
-            logger.debug("Response = {}", response.toString());
+            Object rawBody = response.getResponseBody();
+            if (rawBody instanceof String) {
+                result = null;
+            } else {
+                String json = mapper.writeValueAsString(rawBody);
+                result = readResult(json);
 
-            result = readResult(response.responseBody);
+            }
 
         } catch (IOException e) {
             logger.error("Connection fails, exception tells {} — {}", e.getMessage(), e.getClass());
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            logger.error("Thread interrupted: {}", e.getMessage());
         }
     }
+
 
     public abstract  S readResult(final String body) throws IOException;
 

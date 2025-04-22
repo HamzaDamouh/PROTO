@@ -1,18 +1,14 @@
 package edu.ezip.ing1.pds.commons;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonRootName(value = "response")
 public class Response {
-    public String requestId;
+    private String requestId;
+    private Object responseBody;
 
-    public String responseBody;
+    public Response() { }
 
-    public Response() {
-
-    }
-    public Response(String requestId, String responseBody) {
+    public Response(String requestId, Object responseBody) {
         this.requestId = requestId;
         this.responseBody = responseBody;
     }
@@ -28,25 +24,20 @@ public class Response {
     }
 
     @JsonProperty("response_body")
-    @JsonRawValue
-    public String getResponseBody() {
+    public Object getResponseBody() {
         return responseBody;
     }
 
-    public void setResponseBody(String responseBody) {
+    @JsonProperty("response_body")
+    public void setResponseBody(Object responseBody) {
         this.responseBody = responseBody;
-    }
-
-    @JsonSetter("response_body")
-    public void setBody(JsonNode responseBody) {
-        this.responseBody = responseBody.toString();
     }
 
     @Override
     public String toString() {
         return "Response{" +
                 "requestId='" + requestId + '\'' +
-                ", responseBody='" + responseBody + '\'' +
+                ", responseBody=" + responseBody +
                 '}';
     }
 }

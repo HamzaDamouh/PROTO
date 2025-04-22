@@ -89,7 +89,7 @@ public class XMartCityService {
             student.setGroup(res.getString(3));
             students.add(student);
         }
-        return new Response(request.getRequestId(), objectMapper.writeValueAsString(students));
+        return new Response(request.getRequestId(), students);
     }
 
 }
