@@ -96,4 +96,20 @@ public class StudentService {
         }
     }
 
+    public void insertStudentDirectly(Student student) throws IOException, InterruptedException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final String jsonifiedStudent = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(student);
+        final String requestId = UUID.randomUUID().toString();
+        final Request request = new Request();
+        request.setRequestId(requestId);
+        request.setRequestOrder(insertRequestOrder);
+        request.setRequestContent(jsonifiedStudent);
+        objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);
+        final byte[] requestBytes = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(request);
+
+        final InsertStudentsClientRequest clientRequest = new InsertStudentsClientRequest(
+                networkConfig, 0, request, student, requestBytes);
+        clientRequest.join();
+    }
+
 }

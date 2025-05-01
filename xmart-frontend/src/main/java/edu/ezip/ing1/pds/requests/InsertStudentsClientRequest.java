@@ -24,4 +24,7 @@ public class InsertStudentsClientRequest extends ClientRequest<Student, String> 
         final String result  = studentIdMap.get("student_id").toString();
         return result;
     }
+
+
+
 }
