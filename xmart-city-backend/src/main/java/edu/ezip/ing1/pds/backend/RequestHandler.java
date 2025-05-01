@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import edu.ezip.commons.LoggingUtils;
-import edu.ezip.ing1.pds.business.server.XMartCityService;
 import edu.ezip.ing1.pds.commons.Request;
 import edu.ezip.ing1.pds.commons.Response;
 import org.slf4j.Logger;
@@ -35,7 +34,7 @@ public class RequestHandler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(LoggingLabel);
     private int requestCount = 0;
 
-    private final XMartCityService xmartCityService = XMartCityService.getInstance();
+    private final Dispatcher dispatcher = new Dispatcher();
     private final CoreBackendServer father;
 
     private static final int maxTimeLapToGetAClientPayloadInMs = 5000;
@@ -73,7 +72,7 @@ public class RequestHandler implements Runnable {
             final byte [] inputData = new byte[instream.available()];
             instream.read(inputData);
             final Request request = getRequest(inputData);
-            final Response response = xmartCityService.dispatch(request, connection);
+            final Response response = dispatcher.dispatch(request, connection);
 
             final byte [] outoutData = getResponse(response);
             LoggingUtils.logDataMultiLine(logger, Level.DEBUG, outoutData);
@@ -89,6 +88,8 @@ public class RequestHandler implements Runnable {
             e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             father.completeRequestHandler(this);
         }
