@@ -8,20 +8,34 @@ import edu.ezip.ing1.pds.client.commons.ConfigLoader;
 import edu.ezip.ing1.pds.client.commons.NetworkConfig;
 import edu.ezip.ing1.pds.services.MealPlanClientService;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.*;
 
 public class MealPlanScreen extends VBox {
+
+    // Inner model: one row per weekday
+    private static class DayRow {
+        public String dayName;
+        public String breakfast;
+        public String lunchDinner;
+        public String snack;
+        public int totalCalories;
+        public DayRow(String dayName) { this.dayName = dayName; }
+    }
 
     private final User user;
     private final MealPlanClientService service;
@@ -53,19 +67,16 @@ public class MealPlanScreen extends VBox {
         btnBar.setAlignment(Pos.CENTER);
 
         getChildren().addAll(header, btnBar, contentBox);
-
         loadMealPlan(false);
     }
 
     private void loadMealPlan(boolean regenerate) {
         contentBox.getChildren().setAll(new ProgressIndicator());
 
-        Task<MealPlan> task = new Task<MealPlan>() {
+        Task<MealPlan> task = new Task<>() {
             @Override
             protected MealPlan call() throws Exception {
-                if (regenerate) {
-                    service.generateMealPlan(user);
-                }
+                if (regenerate) service.generateMealPlan(user);
                 return service.getMealPlan(user);
             }
         };
@@ -78,64 +89,68 @@ public class MealPlanScreen extends VBox {
     }
 
     private void displayPlan(MealPlan plan) {
-        contentBox.getChildren().clear();
+        List<MealPlanItem> items = plan.getItems();
+        int typesPerDay = MealTypeEnum.values().length;
+        int days = items.size() / typesPerDay;
+        List<DayRow> rows = new ArrayList<>(days);
 
-        // Group items by meal type
-        Map<MealTypeEnum, List<MealPlanItem>> byType = new EnumMap<>(MealTypeEnum.class);
-        for (MealPlanItem item : plan.getItems()) {
-            byType
-                    .computeIfAbsent(item.getMealType(), t -> new ArrayList<>())
-                    .add(item);
-        }
+        int idx = 0;
+        for (int d = 0; d < days; d++) {
+            LocalDate date = LocalDate.now().plusDays(d);
+            String name = date.getDayOfWeek()
+                    .getDisplayName(TextStyle.SHORT, Locale.getDefault());
+            DayRow row = new DayRow(name);
+            row.totalCalories = 0;
 
-        // For each meal type in a consistent order…
-        for (MealTypeEnum type : MealTypeEnum.values()) {
-            List<MealPlanItem> items = byType.getOrDefault(type, Collections.emptyList());
-            if (items.isEmpty()) continue;  // skip if none
-
-            // Section header
-            Label sectionLbl = new Label(type.name().replace('_',' ').toUpperCase());
-            sectionLbl.setFont(Font.font("System", FontWeight.BOLD, 16));
-            sectionLbl.setTextFill(Color.web("#2e7d32"));
-
-            VBox sectionBox = new VBox(5, sectionLbl);
-            sectionBox.setPadding(new Insets(10));
-            sectionBox.setStyle("-fx-background-color: #f1f8e9; -fx-background-radius: 8;");
-
-            // List each item and tally calories
-            int totalCal = 0;
-            for (MealPlanItem it : items) {
-                HBox row = new HBox(10);
-                row.setAlignment(Pos.CENTER_LEFT);
-
-                Label mealLbl = new Label(it.getMealName());
-                mealLbl.setFont(Font.font("System", FontWeight.NORMAL, 14));
-
-                Label calLbl  = new Label(it.getCalories() + " kcal");
-                calLbl.setFont(Font.font("System", FontWeight.NORMAL, 14));
-
-                row.getChildren().addAll(mealLbl, calLbl);
-                sectionBox.getChildren().add(row);
-
-                totalCal += it.getCalories();
+            for (int m = 0; m < typesPerDay; m++) {
+                MealPlanItem it = items.get(idx++);
+                String desc = it.getMealName() + " (" + it.getCalories() + " kcal)";
+                switch (it.getMealType()) {
+                    case breakfast    -> {
+                        row.breakfast = desc;
+                        row.totalCalories += it.getCalories();
+                    }
+                    case lunch_dinner -> {
+                        row.lunchDinner = desc;
+                        // double lunch/dinner calories
+                        row.totalCalories += it.getCalories() * 2;
+                    }
+                    case snack        -> {
+                        row.snack = desc;
+                        row.totalCalories += it.getCalories();
+                    }
+                }
             }
-
-            // Totals
-            Label totLbl = new Label("Total: " + totalCal + " kcal");
-            totLbl.setFont(Font.font("System", FontWeight.EXTRA_BOLD, 14));
-            totLbl.setTextFill(Color.web("#388e3c"));
-            sectionBox.getChildren().add(totLbl);
-
-            contentBox.getChildren().add(sectionBox);
+            rows.add(row);
         }
 
-        // If absolutely no items at all, show a friendly message:
-        if (contentBox.getChildren().isEmpty()) {
-            Label empty = new Label("No meal plan available. Click “Regenerate” to create one.");
-            empty.setFont(Font.font("System", FontWeight.NORMAL, 14));
-            contentBox.getChildren().add(empty);
-        }
+        TableView<DayRow> table = new TableView<>();
+        table.setItems(FXCollections.observableArrayList(rows));
+
+        TableColumn<DayRow, String> dayCol = new TableColumn<>("Day");
+        dayCol.setCellValueFactory(cd ->
+                new ReadOnlyStringWrapper(cd.getValue().dayName));
+
+        TableColumn<DayRow, String> bCol = new TableColumn<>("Breakfast");
+        bCol.setCellValueFactory(cd ->
+                new ReadOnlyStringWrapper(cd.getValue().breakfast));
+
+        TableColumn<DayRow, String> lCol = new TableColumn<>("Lunch/Dinner");
+        lCol.setCellValueFactory(cd ->
+                new ReadOnlyStringWrapper(cd.getValue().lunchDinner));
+
+        TableColumn<DayRow, String> sCol = new TableColumn<>("Snack");
+        sCol.setCellValueFactory(cd ->
+                new ReadOnlyStringWrapper(cd.getValue().snack));
+
+        TableColumn<DayRow, Integer> tCol = new TableColumn<>("Total kcal");
+        tCol.setCellValueFactory(cd ->
+                new ReadOnlyObjectWrapper<>(cd.getValue().totalCalories));
+
+        table.getColumns().setAll(dayCol, bCol, lCol, sCol, tCol);
+        contentBox.getChildren().setAll(table);
     }
+
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         a.showAndWait();

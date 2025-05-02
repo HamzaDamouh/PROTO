@@ -30,37 +30,4 @@ public class MealPlanItem {
 
 
 
-    // CHATGPT
-    public static class LocalDateDeserializer extends JsonDeserializer<LocalDate> {
-        @Override
-        public LocalDate deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            JsonNode node = p.getCodec().readTree(p);
-
-            try {
-                // Try to parse as a standard ISO date string first
-                if (node.isTextual()) {
-                    return LocalDate.parse(node.asText());
-                }
-
-                // If it's an object with year/month/day fields, extract them
-                if (node.isObject()) {
-                    int year = node.has("year") ? node.get("year").asInt() : 0;
-                    int month = node.has("monthValue") ? node.get("monthValue").asInt() : 1;
-                    int day = node.has("dayOfMonth") ? node.get("dayOfMonth").asInt() : 1;
-
-                    if (year > 0 && month > 0 && day > 0) {
-                        return LocalDate.of(year, month, day);
-                    }
-                }
-
-                // Fallback to current date
-                return LocalDate.now();
-            } catch (Exception e) {
-                // Log error and fallback to current date
-                System.err.println("Error deserializing date: " + e.getMessage());
-                return LocalDate.now();
-            }
-        }
-    }
-
 }
