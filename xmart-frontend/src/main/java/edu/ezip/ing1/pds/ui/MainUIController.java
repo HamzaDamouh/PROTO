@@ -18,7 +18,7 @@ public class MainUIController extends Application {
         rootPane = new StackPane();
         rootPane.setAlignment(Pos.CENTER);
 
-
+        // initial screen
         rootPane.getChildren().add(new LoginScreen(MainUIController::switchToProfile));
 
         Scene scene = new Scene(rootPane, 400, 600);
@@ -36,11 +36,17 @@ public class MainUIController extends Application {
         rootPane.getChildren().clear();
         rootPane.getChildren().add(new LoginScreen(MainUIController::switchToProfile));
     }
+
     public static void switchToSignUp() {
         rootPane.getChildren().clear();
         rootPane.getChildren().add(new SignUpScreen(MainUIController::switchToProfile));
     }
 
+    // === new navigation: ===
+    public static void switchToMealPlan(User user) {
+        rootPane.getChildren().clear();
+        rootPane.getChildren().add(new MealPlanScreen(user));
+    }
 
     public static void main(String[] args) {
         launch(args);

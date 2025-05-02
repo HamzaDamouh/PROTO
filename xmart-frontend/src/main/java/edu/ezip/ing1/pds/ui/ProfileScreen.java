@@ -1,10 +1,13 @@
 package edu.ezip.ing1.pds.ui;
 
 import edu.ezip.ing1.pds.business.dto.User;
+import edu.ezip.ing1.pds.client.commons.ConfigLoader;
+import edu.ezip.ing1.pds.client.commons.NetworkConfig;
+import edu.ezip.ing1.pds.services.MealPlanClientService;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -13,6 +16,7 @@ import javafx.scene.text.FontWeight;
 public class ProfileScreen extends VBox {
 
     public ProfileScreen(User user) {
+        // === existing setup ===
         setSpacing(30);
         setPadding(new Insets(40));
         setAlignment(Pos.TOP_CENTER);
@@ -35,21 +39,51 @@ public class ProfileScreen extends VBox {
         card.setAlignment(Pos.CENTER_LEFT);
         card.setStyle("-fx-background-color: #f1f8e9; -fx-background-radius: 12; -fx-border-radius: 12;");
 
-        Label email = styledRow("Email:", user.getEmail());
-        Label age = styledRow("Age:", String.valueOf(user.getAge()));
-        Label height = styledRow("Height:", user.getHeightCm() + " cm");
-        Label weight = styledRow("Weight:", user.getWeightKg() + " kg");
-        Label sex = styledRow("Sex:", user.getSex().toString());
-        Label activity = styledRow("Activity Level:", user.getActivityLevel().toString());
-        Label goal = styledRow("Goal:", user.getGoal().toString());
+        card.getChildren().addAll(
+                styledRow("Email:", user.getEmail()),
+                styledRow("Age:", String.valueOf(user.getAge())),
+                styledRow("Height:", user.getHeightCm() + " cm"),
+                styledRow("Weight:", user.getWeightKg() + " kg"),
+                styledRow("Sex:", user.getSex().toString()),
+                styledRow("Activity Level:", user.getActivityLevel().toString()),
+                styledRow("Goal:", user.getGoal().toString())
+        );
 
-        card.getChildren().addAll(email, age, height, weight, sex, activity, goal);
+        // === new meal-plan buttons ===
+        NetworkConfig netCfg = ConfigLoader.loadConfig(NetworkConfig.class, "network.yaml");
+        MealPlanClientService mealSvc = new MealPlanClientService(netCfg);
 
+        Button generatePlanBtn = new Button("Generate Meal Plan");
+        generatePlanBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;");
+        generatePlanBtn.setOnAction(e -> {
+            generatePlanBtn.setDisable(true);
+            new Thread(() -> {
+                try {
+                    mealSvc.generateMealPlan(user);
+                    Platform.runLater(() -> {
+                        showInfo("Meal plan generated!");
+                    });
+                } catch (Exception ex) {
+                    Platform.runLater(() -> showError("Error: " + ex.getMessage()));
+                } finally {
+                    Platform.runLater(() -> generatePlanBtn.setDisable(false));
+                }
+            }).start();
+        });
+
+        Button viewPlanBtn = new Button("View Meal Plan");
+        viewPlanBtn.setStyle("-fx-background-color: #81c784; -fx-text-fill: white; -fx-font-weight: bold;");
+        viewPlanBtn.setOnAction(e -> MainUIController.switchToMealPlan(user));
+
+        HBox mealBtnBox = new HBox(15, generatePlanBtn, viewPlanBtn);
+        mealBtnBox.setAlignment(Pos.CENTER);
+
+        // === existing Log Out button ===
         Button logoutButton = new Button("Log Out");
         logoutButton.setStyle("-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;");
         logoutButton.setOnAction(e -> MainUIController.switchToLogin());
 
-        getChildren().addAll(header, calorieTarget, calorieSub, card, logoutButton);
+        getChildren().addAll(header, calorieTarget, calorieSub, card, mealBtnBox, logoutButton);
     }
 
     private Label styledRow(String label, String value) {
@@ -57,5 +91,15 @@ public class ProfileScreen extends VBox {
         row.setFont(Font.font("System", FontWeight.MEDIUM, 14));
         row.setTextFill(Color.web("#424242"));
         return row;
+    }
+
+    private void showInfo(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        a.showAndWait();
+    }
+
+    private void showError(String msg) {
+        Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        a.showAndWait();
     }
 }
