@@ -28,8 +28,8 @@ public class MealPlanService {
 
     private static final Map<MealTypeEnum, Double> RATIOS = new EnumMap<>(MealTypeEnum.class);
     static {
-        RATIOS.put(MealTypeEnum.breakfast, 0.25);
-        RATIOS.put(MealTypeEnum.lunch_dinner,     0.40);
+        RATIOS.put(MealTypeEnum.breakfast, 0.20);
+        RATIOS.put(MealTypeEnum.lunch_dinner,     0.35);
         RATIOS.put(MealTypeEnum.snack,     0.10);
     }
     private static final double CAL_MARGIN = 0.15;         // ±15%
