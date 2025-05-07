@@ -16,7 +16,7 @@ import javafx.scene.text.FontWeight;
 public class ProfileScreen extends VBox {
 
     public ProfileScreen(User user) {
-        // === existing setup ===
+        // existing setup
         setSpacing(30);
         setPadding(new Insets(40));
         setAlignment(Pos.TOP_CENTER);
@@ -49,7 +49,7 @@ public class ProfileScreen extends VBox {
                 styledRow("But:", user.getGoal().toString())
         );
 
-        // === new meal-plan buttons ===
+        // meal-plan buttons
         NetworkConfig netCfg = ConfigLoader.loadConfig(NetworkConfig.class, "network.yaml");
         MealPlanClientService mealSvc = new MealPlanClientService(netCfg);
 

@@ -9,10 +9,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MealPlanner {
-    // Configurable ratios per meal type
+
     private final Map<MealTypeEnum, Double> ratios;
-    private final double margin; // e.g. 0.15 for ±15%
-    private final int diversityWindowDays; // sliding window length
+    private final double margin; //  ±15%
+    private final int diversityWindowDays;
     private final Random random = new Random();
 
     public MealPlanner(Map<MealTypeEnum, Double> ratios, double margin, int diversityWindowDays) {
@@ -28,14 +28,14 @@ public class MealPlanner {
         double tdee = user.calculateDailyCalories();
         Map<LocalDate, List<Meal>> week = new LinkedHashMap<>();
 
-        // Sliding window for recent ingredients to maintain diversity
+
         Deque<Set<String>> recentIngredients = new ArrayDeque<>();
 
         for (int d = 0; d < days; d++) {
             LocalDate date = from.plusDays(d);
             List<Meal> dailyPlan = new ArrayList<>();
 
-            // Build a set of seen ingredients in the window
+
             Set<String> windowSeen = recentIngredients.stream()
                     .flatMap(Set::stream)
                     .collect(Collectors.toSet());
@@ -45,14 +45,14 @@ public class MealPlanner {
                 int minCal = (int) (targetCal * (1 - margin));
                 int maxCal = (int) (targetCal * (1 + margin));
 
-                // Filter candidates by type, calorie window, and user preferences
+
                 List<Meal> candidates = allMeals.stream()
                         .filter(m -> type.equals(m.getType()))
                         .filter(m -> m.getCalories() >= minCal && m.getCalories() <= maxCal)
                         .collect(Collectors.toList());
 
                 if (candidates.isEmpty()) {
-                    // fallback: expand margin
+
                     candidates = allMeals.stream()
                             .filter(m -> type.equals(m.getType()))
                             .filter(m -> m.getCalories() >= targetCal * 0.5 && m.getCalories() <= targetCal * 1.5)
@@ -65,7 +65,7 @@ public class MealPlanner {
                 }
             }
 
-            // Update recent ingredients window
+
             Set<String> dayIngs = dailyPlan.stream()
                     .flatMap(m -> m.getIngredients().stream())
                     .collect(Collectors.toSet());
@@ -79,13 +79,11 @@ public class MealPlanner {
         return week;
     }
 
-    /**
-     * Scores and selects a meal from candidates, adding randomness among top options.
-     */
+
     private Meal selectMeal(List<Meal> candidates, int targetCal, Set<String> windowSeen) {
         if (candidates.isEmpty()) return null;
 
-        // Score each candidate
+
         List<Scored> scored = new ArrayList<>();
         for (Meal m : candidates) {
             double macroScore = 1.0 - Math.abs(m.getCalories() - targetCal) / (double) targetCal;
@@ -97,10 +95,10 @@ public class MealPlanner {
             scored.add(new Scored(m, totalScore));
         }
 
-        // Sort descending by score
+
         scored.sort(Comparator.comparingDouble((Scored s) -> s.score).reversed());
 
-        // Take top N (e.g., 3) and pick randomly weighted by score
+
         int topN = Math.min(3, scored.size());
         List<Scored> topList = scored.subList(0, topN);
         double sum = topList.stream().mapToDouble(s -> s.score).sum();

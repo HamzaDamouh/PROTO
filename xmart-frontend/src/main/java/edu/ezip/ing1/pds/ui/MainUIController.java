@@ -42,7 +42,6 @@ public class MainUIController extends Application {
         rootPane.getChildren().add(new SignUpScreen(MainUIController::switchToProfile));
     }
 
-    // === new navigation: ===
     public static void switchToMealPlan(User user) {
         rootPane.getChildren().clear();
         rootPane.getChildren().add(new MealPlanScreen(user));

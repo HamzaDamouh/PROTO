@@ -21,23 +21,19 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service handling meal plan generation and retrieval.
- * Uses MealPlanner to compute plans and persists them to Postgres.
- */
 public class MealPlanService {
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-    // Configure meal slot ratios and diversity settings
+
     private static final Map<MealTypeEnum, Double> RATIOS = new EnumMap<>(MealTypeEnum.class);
     static {
         RATIOS.put(MealTypeEnum.breakfast, 0.25);
         RATIOS.put(MealTypeEnum.lunch_dinner,     0.40);
         RATIOS.put(MealTypeEnum.snack,     0.10);
     }
-    private static final double CAL_MARGIN = 0.15;         // ±15% calorie window
-    private static final int DIVERSITY_WINDOW = 3;         // 3-day sliding window for ingredient diversity
+    private static final double CAL_MARGIN = 0.15;         // ±15%
+    private static final int DIVERSITY_WINDOW = 3;         // 3-day
 
     private static final String UPSERT_SQL =
             """
@@ -56,21 +52,19 @@ public class MealPlanService {
             ORDER BY mp.date, mp.meal_type
             """;
 
-    /**
-     * Generate a 7-day meal plan for the user, persist it, and return status.
-     */
+
     public Response generateMealPlan(Request request, Connection conn) throws Exception {
         User user = mapper.readValue(request.getRequestBody(), User.class);
-        // Load all meals
+
         MealLoader loader = new MealLoader();
         List<Meal> allMeals = loader.findAllMeals(conn);
 
-        // Instantiate planner with our config
+
         MealPlanner planner = new MealPlanner(RATIOS, CAL_MARGIN, DIVERSITY_WINDOW);
         Map<LocalDate, List<Meal>> plan = planner.planMeals(
                 user, allMeals, LocalDate.now(), 7);
 
-        // Persist plan
+
         try (PreparedStatement ps = conn.prepareStatement(UPSERT_SQL)) {
             for (var entry : plan.entrySet()) {
                 LocalDate date = entry.getKey();
@@ -85,7 +79,7 @@ public class MealPlanService {
             ps.executeBatch();
         }
 
-        // Build response DTO
+
         MealPlan dto = new MealPlan();
         for (var entry : plan.entrySet()) {
             LocalDate date = entry.getKey();
@@ -101,9 +95,7 @@ public class MealPlanService {
         return new Response(request.getRequestId(), dto);
     }
 
-    /**
-     * Retrieve the persisted meal plan for the user.
-     */
+
     public Response getMealPlan(Request request, Connection conn) throws SQLException, IOException {
         User user = mapper.readValue(request.getRequestBody(), User.class);
         MealPlan plan = new MealPlan();
