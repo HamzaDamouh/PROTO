@@ -41,7 +41,7 @@ public class CoreBackendServer implements Runnable
     private volatile boolean topToStop = false;
     private int requestHandlerCreatedSoFar = 0;
 
-    // Should rather use an Interface variable
+
     private ConnectionPoolImpl connectionPool = ConnectionPoolImpl.getInstance(dbEditorIsPGSQLHere);
 
     // This class method should be factorized.

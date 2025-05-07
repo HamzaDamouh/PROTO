@@ -51,15 +51,15 @@ public class MealPlanScreen extends VBox {
         setAlignment(Pos.TOP_CENTER);
         setStyle("-fx-background-color: #ffffff;");
 
-        Label header = new Label("My Meal Plan");
+        Label header = new Label("Mon Plan");
         header.setFont(Font.font("System", FontWeight.BOLD, 24));
         header.setTextFill(Color.web("#2e7d32"));
 
-        Button regenerateBtn = new Button("Regenerate");
+        Button regenerateBtn = new Button("Regénére");
         regenerateBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;");
         regenerateBtn.setOnAction(e -> loadMealPlan(true));
 
-        Button backBtn = new Button("Back to Dashboard");
+        Button backBtn = new Button("Retour au Tableau de Bord");
         backBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #2e7d32; -fx-font-weight: bold;");
         backBtn.setOnAction(e -> MainUIController.switchToProfile(user));
 
@@ -127,15 +127,15 @@ public class MealPlanScreen extends VBox {
         TableView<DayRow> table = new TableView<>();
         table.setItems(FXCollections.observableArrayList(rows));
 
-        TableColumn<DayRow, String> dayCol = new TableColumn<>("Day");
+        TableColumn<DayRow, String> dayCol = new TableColumn<>("Jour");
         dayCol.setCellValueFactory(cd ->
                 new ReadOnlyStringWrapper(cd.getValue().dayName));
 
-        TableColumn<DayRow, String> bCol = new TableColumn<>("Breakfast");
+        TableColumn<DayRow, String> bCol = new TableColumn<>("Petit Déjeuner");
         bCol.setCellValueFactory(cd ->
                 new ReadOnlyStringWrapper(cd.getValue().breakfast));
 
-        TableColumn<DayRow, String> lCol = new TableColumn<>("Lunch/Dinner");
+        TableColumn<DayRow, String> lCol = new TableColumn<>("Déjeuner/Dinner");
         lCol.setCellValueFactory(cd ->
                 new ReadOnlyStringWrapper(cd.getValue().lunchDinner));
 

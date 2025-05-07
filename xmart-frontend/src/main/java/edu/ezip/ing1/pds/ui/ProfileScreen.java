@@ -22,7 +22,7 @@ public class ProfileScreen extends VBox {
         setAlignment(Pos.TOP_CENTER);
         setStyle("-fx-background-color: #ffffff;");
 
-        Label header = new Label("Your Dashboard");
+        Label header = new Label("Tableau de Bord");
         header.setFont(Font.font("System", FontWeight.BOLD, 26));
         header.setTextFill(Color.web("#2e7d32"));
 
@@ -30,7 +30,7 @@ public class ProfileScreen extends VBox {
         calorieTarget.setFont(Font.font("System", FontWeight.EXTRA_BOLD, 48));
         calorieTarget.setTextFill(Color.web("#388e3c"));
 
-        Label calorieSub = new Label("Target Calories to Maintain Health");
+        Label calorieSub = new Label("Nombre de calorie par jour");
         calorieSub.setFont(Font.font("System", FontWeight.NORMAL, 14));
         calorieSub.setTextFill(Color.GRAY);
 
@@ -42,18 +42,18 @@ public class ProfileScreen extends VBox {
         card.getChildren().addAll(
                 styledRow("Email:", user.getEmail()),
                 styledRow("Age:", String.valueOf(user.getAge())),
-                styledRow("Height:", user.getHeightCm() + " cm"),
-                styledRow("Weight:", user.getWeightKg() + " kg"),
-                styledRow("Sex:", user.getSex().toString()),
-                styledRow("Activity Level:", user.getActivityLevel().toString()),
-                styledRow("Goal:", user.getGoal().toString())
+                styledRow("Taille:", user.getHeightCm() + " cm"),
+                styledRow("Poid:", user.getWeightKg() + " kg"),
+                styledRow("Genre:", user.getSex().toString()),
+                styledRow("Niveau d'activité:", user.getActivityLevel().toString()),
+                styledRow("But:", user.getGoal().toString())
         );
 
         // === new meal-plan buttons ===
         NetworkConfig netCfg = ConfigLoader.loadConfig(NetworkConfig.class, "network.yaml");
         MealPlanClientService mealSvc = new MealPlanClientService(netCfg);
 
-        Button generatePlanBtn = new Button("Generate Meal Plan");
+        Button generatePlanBtn = new Button("Generation de Plan Alimentaire");
         generatePlanBtn.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;");
         generatePlanBtn.setOnAction(e -> {
             generatePlanBtn.setDisable(true);
@@ -61,7 +61,7 @@ public class ProfileScreen extends VBox {
                 try {
                     mealSvc.generateMealPlan(user);
                     Platform.runLater(() -> {
-                        showInfo("Meal plan generated!");
+                        showInfo("Plan Généré!");
                     });
                 } catch (Exception ex) {
                     Platform.runLater(() -> showError("Error: " + ex.getMessage()));
@@ -71,7 +71,7 @@ public class ProfileScreen extends VBox {
             }).start();
         });
 
-        Button viewPlanBtn = new Button("View Meal Plan");
+        Button viewPlanBtn = new Button("Visualisation du Plan");
         viewPlanBtn.setStyle("-fx-background-color: #81c784; -fx-text-fill: white; -fx-font-weight: bold;");
         viewPlanBtn.setOnAction(e -> MainUIController.switchToMealPlan(user));
 

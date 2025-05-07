@@ -32,11 +32,11 @@ public class LoginScreen extends VBox {
         setPadding(new Insets(40));
         setAlignment(Pos.CENTER);
 
-        Label title = new Label("Welcome to HealthTrack");
+        Label title = new Label("Bienvenue à l'EPISAINE");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;");
 
         emailField.setPromptText("Email");
-        passwordField.setPromptText("Password");
+        passwordField.setPromptText("Mot de passe");
         emailField.setMaxWidth(250);
         passwordField.setMaxWidth(250);
 

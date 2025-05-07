@@ -8,8 +8,6 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
 
-//      sudo -i -u postgres
-//      psql -c "alter user pgil with password 'ezipspirit'"
 
 public class DatabaseConnectionBasicConfiguration {
     private String  databaseName;
@@ -22,6 +20,8 @@ public class DatabaseConnectionBasicConfiguration {
     private final static String dbConfigDefaultFileName = "db-config.yaml";
     private final static String LoggingLabel = "C o n n - p o o l";
 
+
+    // SINGLETON PATTERN WTF
     private final Logger logger = LoggerFactory.getLogger(LoggingLabel);
     public static DatabaseConnectionBasicConfiguration getInstance() {
         if(inst == null) {
@@ -30,6 +30,8 @@ public class DatabaseConnectionBasicConfiguration {
         return inst;
     }
 
+
+    // SNAKE YAML THIS SHIT
     private  DatabaseConnectionBasicConfiguration(final boolean t) {
         final Yaml yaml = new Yaml(new Constructor(DatabaseConnectionBasicConfiguration.class));
         final InputStream nptStrm = this.getClass().getClassLoader().getResourceAsStream(dbConfigDefaultFileName);
@@ -37,6 +39,9 @@ public class DatabaseConnectionBasicConfiguration {
         inst = yaml.load(nptStrm);
         logger.debug("Configuration loaded : {}", inst.toString());
     }
+
+
+    // Getters for ConnectionPoolImpl
     private DatabaseConnectionBasicConfiguration() {
     }
     public String getDatabaseName() {

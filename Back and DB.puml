@@ -1,0 +1,40 @@
+@startuml
+title Core Backend Architecture
+
+actor Client
+
+package "Server Layer" {
+  [CoreBackendServer]
+  [RequestHandler]
+}
+
+package "Routing" {
+  [Dispatcher]
+}
+
+package "Business Logic" {
+  [UserService]
+  [MealPlanService]
+}
+
+package "DB Connection" {
+  [ConnectionPoolImpl]
+  [DatabaseConnectionBasicConfiguration]
+}
+
+database "PostgreSQL"
+
+' Flow connections
+Client --> [CoreBackendServer] : connect()
+[CoreBackendServer] --> [RequestHandler] : spawn thread
+[RequestHandler] --> [Dispatcher] : dispatch(request)
+[Dispatcher] --> [UserService] : if LOGIN_USER
+[Dispatcher] --> [MealPlanService] : if GENERATE_MEAL_PLAN
+[UserService] --> [ConnectionPoolImpl] : use connection
+[MealPlanService] --> [ConnectionPoolImpl] : use connection
+[ConnectionPoolImpl] --> [DatabaseConnectionBasicConfiguration] : get config
+[ConnectionPoolImpl] --> PostgreSQL : connect/query
+[RequestHandler] --> [ConnectionPoolImpl] : release()
+[RequestHandler] --> Client : send response
+
+@enduml

@@ -25,8 +25,8 @@ public class SignUpScreen extends VBox {
     private final ComboBox<ActivityLevelEnum> activityBox = new ComboBox<>();
     private final ComboBox<GoalEnum> goalBox = new ComboBox<>();
 
-    private final Button submitButton = new Button("Create Account");
-    private final Button backButton = new Button("Back to Login");
+    private final Button submitButton = new Button("Création de Compte");
+    private final Button backButton = new Button("Retour au Login");
 
     private final Consumer<User> onSuccess;
     private final UserClientService userClientService;
@@ -41,21 +41,21 @@ public class SignUpScreen extends VBox {
         setPadding(new Insets(30));
         setAlignment(Pos.CENTER);
 
-        Label title = new Label("Create Your Account");
+        Label title = new Label("Création de Compte");
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;");
 
         emailField.setPromptText("Email");
-        passwordField.setPromptText("Password");
+        passwordField.setPromptText("Mot de Passe");
         ageField.setPromptText("Age");
-        heightField.setPromptText("Height (cm)");
-        weightField.setPromptText("Weight (kg)");
+        heightField.setPromptText("Taille (cm)");
+        weightField.setPromptText("Poid (kg)");
 
         sexBox.setItems(FXCollections.observableArrayList(SexEnum.values()));
-        sexBox.setPromptText("Sex");
+        sexBox.setPromptText("Genre");
         activityBox.setItems(FXCollections.observableArrayList(ActivityLevelEnum.values()));
-        activityBox.setPromptText("Activity Level");
+        activityBox.setPromptText("Niveau d'activité");
         goalBox.setItems(FXCollections.observableArrayList(GoalEnum.values()));
-        goalBox.setPromptText("Goal");
+        goalBox.setPromptText("But");
 
         submitButton.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white;");
         backButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #2e7d32;");

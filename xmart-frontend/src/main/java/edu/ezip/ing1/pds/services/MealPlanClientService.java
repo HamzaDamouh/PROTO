@@ -10,8 +10,6 @@ import edu.ezip.ing1.pds.client.commons.NetworkConfig;
 import edu.ezip.ing1.pds.commons.Request;
 import edu.ezip.ing1.pds.requests.GenerateMealPlanClientRequest;
 import edu.ezip.ing1.pds.requests.GetMealPlanClientRequest;
-
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class MealPlanClientService {

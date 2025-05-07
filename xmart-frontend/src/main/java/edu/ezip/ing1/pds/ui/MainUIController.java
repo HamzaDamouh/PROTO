@@ -23,7 +23,7 @@ public class MainUIController extends Application {
 
         Scene scene = new Scene(rootPane, 400, 600);
         stage.setScene(scene);
-        stage.setTitle("Health App");
+        stage.setTitle("EPISAINE");
         stage.show();
     }
 
