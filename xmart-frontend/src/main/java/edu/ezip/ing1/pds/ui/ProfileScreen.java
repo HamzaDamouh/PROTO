@@ -44,9 +44,10 @@ public class ProfileScreen extends VBox {
                 styledRow("Age:", String.valueOf(user.getAge())),
                 styledRow("Taille:", user.getHeightCm() + " cm"),
                 styledRow("Poid:", user.getWeightKg() + " kg"),
-                styledRow("Genre:", user.getSex().toString()),
-                styledRow("Niveau d'activité:", user.getActivityLevel().toString()),
-                styledRow("But:", user.getGoal().toString())
+                styledRow("Genre:", user.getSex().getLabelFr()),
+                styledRow("Niveau d'activité:", user.getActivityLevel().getLabelFr()),
+                styledRow("But:", user.getGoal().getLabelFr())
+
         );
 
         // meal-plan buttons

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import edu.ezip.ing1.pds.business.dto.User;
 import edu.ezip.ing1.pds.client.commons.NetworkConfig;
 import edu.ezip.ing1.pds.commons.Request;
+import edu.ezip.ing1.pds.commons.Response;
 import edu.ezip.ing1.pds.requests.CreateUserClientRequest;
 import edu.ezip.ing1.pds.requests.LoginUserClientRequest;
 
@@ -38,7 +39,12 @@ public class UserClientService {
         CreateUserClientRequest clientRequest = new CreateUserClientRequest(
                 networkConfig, 0, request, user, bytes);
         clientRequest.join();
+        if (clientRequest.getResult() == null) {
+            throw new Exception("Le serveur est indisponible.");
+        }
         return clientRequest.getResult();
+
+
     }
 
     public User loginUser(String email, String passwordHash) throws Exception {
@@ -63,6 +69,16 @@ public class UserClientService {
         LoginUserClientRequest clientRequest = new LoginUserClientRequest(
                 networkConfig, 0, request, user, bytes);
         clientRequest.join();
+
+        User result = clientRequest.getResult();
+
+
+        if (result == null) {
+            throw new Exception("Échec de la connexion : le serveur est indisponible ou les identifiants sont incorrects.");
+        }
+
+
+
         return clientRequest.getResult();
     }
 }

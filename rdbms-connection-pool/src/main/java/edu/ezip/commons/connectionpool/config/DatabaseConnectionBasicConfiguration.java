@@ -31,7 +31,7 @@ public class DatabaseConnectionBasicConfiguration {
     }
 
 
-    // SNAKE YAML THIS SHIT
+
     private  DatabaseConnectionBasicConfiguration(final boolean t) {
         final Yaml yaml = new Yaml(new Constructor(DatabaseConnectionBasicConfiguration.class));
         final InputStream nptStrm = this.getClass().getClassLoader().getResourceAsStream(dbConfigDefaultFileName);

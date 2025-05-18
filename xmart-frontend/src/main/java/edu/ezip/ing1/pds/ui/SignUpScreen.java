@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.util.StringConverter;
 
 import java.util.function.Consumer;
 
@@ -51,10 +52,13 @@ public class SignUpScreen extends VBox {
         weightField.setPromptText("Poid (kg)");
 
         sexBox.setItems(FXCollections.observableArrayList(SexEnum.values()));
+        sexBox.setConverter(frenchLabelConverter(SexEnum::getLabelFr));
         sexBox.setPromptText("Genre");
         activityBox.setItems(FXCollections.observableArrayList(ActivityLevelEnum.values()));
+        activityBox.setConverter(frenchLabelConverter(ActivityLevelEnum::getLabelFr));
         activityBox.setPromptText("Niveau d'activité");
         goalBox.setItems(FXCollections.observableArrayList(GoalEnum.values()));
+        goalBox.setConverter(frenchLabelConverter(GoalEnum::getLabelFr));
         goalBox.setPromptText("But");
 
         submitButton.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white;");
@@ -98,4 +102,20 @@ public class SignUpScreen extends VBox {
         Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
         alert.showAndWait();
     }
+
+    private <T> StringConverter<T> frenchLabelConverter(java.util.function.Function<T, String> labelGetter) {
+        return new StringConverter<>() {
+            @Override
+            public String toString(T value) {
+                return value != null ? labelGetter.apply(value) : "";
+            }
+
+            @Override
+            public T fromString(String s) {
+                return null;
+            }
+        };
+    }
+
+
 }

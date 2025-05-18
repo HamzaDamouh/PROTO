@@ -73,6 +73,10 @@ public class MealPlanClientService {
         GetMealPlanClientRequest clientReq =
                 new GetMealPlanClientRequest(networkConfig, 0, request, user, bytes);
         clientReq.join();
+
+        if (clientReq.getResult() == null) {
+            throw new Exception("Le serveur est indisponible.");
+        }
         return clientReq.getResult();
     }
 }
