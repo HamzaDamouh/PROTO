@@ -6,7 +6,6 @@ PORT=45065
 
 echo "Stopping backend on $VM_HOST…"
 
-# -T disables pseudo-tty allocation so we don't get the motd banner
 ssh -T $VM_USER@$VM_HOST <<EOF
   # look up the PID listening on our TCP port
   PID=\$(lsof -ti tcp:$PORT)
