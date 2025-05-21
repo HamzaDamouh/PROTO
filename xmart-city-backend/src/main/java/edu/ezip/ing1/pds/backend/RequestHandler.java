@@ -18,9 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class RequestHandler implements Runnable {
     private final Socket socket;
@@ -34,8 +32,9 @@ public class RequestHandler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(LoggingLabel);
     private int requestCount = 0;
 
-    private final Dispatcher dispatcher = new Dispatcher();
     private final CoreBackendServer father;
+    private final Dispatcher dispatcher;
+
 
     private static final int maxTimeLapToGetAClientPayloadInMs = 5000;
     private static final int timeStepMs = 300;
@@ -44,10 +43,13 @@ public class RequestHandler implements Runnable {
     protected RequestHandler(final Socket socket,
                              final Connection connection,
                              final int myBirthDate,
-                             final CoreBackendServer father) throws IOException {
+                             final CoreBackendServer father,
+                             final Dispatcher dispatcher) throws IOException {
         this.socket = socket;
         this.connection = connection;
         this.father = father;
+        this.dispatcher = dispatcher;
+
         final StringBuffer threadName = new StringBuffer();
         threadName.append(threadNamePrfx).append("★").append(String.format("%04d",myBirthDate));
         self = new Thread(this, threadName.toString());
@@ -57,7 +59,7 @@ public class RequestHandler implements Runnable {
     }
 
 
-
+    /*
     @Override
     public void run() {
         try {
@@ -72,6 +74,9 @@ public class RequestHandler implements Runnable {
             final byte [] inputData = new byte[instream.available()];
             instream.read(inputData);
             final Request request = getRequest(inputData);
+
+
+
             final Response response = dispatcher.dispatch(request, connection);
 
             final byte [] outoutData = getResponse(response);
@@ -94,6 +99,68 @@ public class RequestHandler implements Runnable {
             father.completeRequestHandler(this);
         }
     }
+
+     */
+    @Override
+    public void run() {
+        boolean responded = false;
+        boolean isSaturation = false;
+        try {
+            // 1) Wait for request bytes
+            int timeout = maxTimeLapToGetAClientPayloadInMs;
+            while (instream.available() == 0 && timeout > 0) {
+                waitArtifact.pollFirst(timeStepMs, TimeUnit.MILLISECONDS);
+                timeout -= timeStepMs;
+            }
+            if (timeout < 0) return;
+
+            // 2) Read and parse request
+            byte[] inputData = new byte[instream.available()];
+            instream.read(inputData);
+            Request request = getRequest(inputData);
+
+            // detect saturation
+            isSaturation = "saturation".equals(request.getRequestOrder());
+
+            // 3) If no connection → immediate “Pool occupé”
+            if (connection == null) {
+                Response err = new Response(request.getRequestId(), "Pool occupé");
+                byte[] errBytes = getResponse(err);
+                LoggingUtils.logDataMultiLine(logger, Level.DEBUG, errBytes);
+                outstream.write(errBytes);
+                outstream.flush();
+                responded = true;
+                return;
+            }
+
+            // 4) Dispatch and build response
+            Response response = dispatcher.dispatch(request, connection);
+            byte[] outData = getResponse(response);
+            LoggingUtils.logDataMultiLine(logger, Level.DEBUG, outData);
+
+            // 5) Send back to client
+            outstream.write(outData);
+            outstream.flush();
+            responded = true;
+        } catch (Exception e) {
+            logger.error("Error in RequestHandler: ", e);
+        } finally {
+            try {
+                if (responded) {
+                    // close the socket to signal end of response
+                    socket.close();
+                }
+            } catch (IOException e) {
+                logger.warn("Failed to close client socket", e);
+            }
+            // only release the connection if we actually held one and not during saturation
+            if (connection != null && !isSaturation) {
+                father.completeRequestHandler(this);
+            }
+        }
+    }
+
+
 
     private final Request getRequest(byte [] data) throws IOException {
         logger.debug("data received {} bytes", data.length);

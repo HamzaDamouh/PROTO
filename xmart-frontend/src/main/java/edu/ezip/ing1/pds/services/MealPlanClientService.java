@@ -45,6 +45,15 @@ public class MealPlanClientService {
         GenerateMealPlanClientRequest clientReq =
                 new GenerateMealPlanClientRequest(networkConfig, 0, request, user, bytes);
         clientReq.join();
+
+        if (clientReq.getErrorMessage() != null) {
+            throw new Exception(clientReq.getErrorMessage());
+        }
+
+        String result = clientReq.getResult();
+        if (result == null) {
+            throw new Exception("Le serveur est indisponible.");
+        }
         return clientReq.getResult();
     }
 
@@ -74,7 +83,13 @@ public class MealPlanClientService {
                 new GetMealPlanClientRequest(networkConfig, 0, request, user, bytes);
         clientReq.join();
 
-        if (clientReq.getResult() == null) {
+
+        if (clientReq.getErrorMessage() != null) {
+            throw new Exception(clientReq.getErrorMessage());
+        }
+
+        String result = clientReq.getResult().toString();
+        if (result == null) {
             throw new Exception("Le serveur est indisponible.");
         }
         return clientReq.getResult();

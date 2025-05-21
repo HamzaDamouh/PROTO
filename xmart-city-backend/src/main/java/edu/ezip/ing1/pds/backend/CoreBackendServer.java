@@ -2,6 +2,7 @@ package edu.ezip.ing1.pds.backend;
 
 import edu.ezip.commons.connectionpool.config.impl.ConnectionPoolImpl;
 import edu.ezip.ing1.pds.backend.config.CoreBackendServerConfiguration;
+import edu.ezip.ing1.pds.business.server.Dispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -43,6 +44,7 @@ public class CoreBackendServer implements Runnable
 
 
     private ConnectionPoolImpl connectionPool = ConnectionPoolImpl.getInstance(dbEditorIsPGSQLHere);
+    private final Dispatcher dispatcher = new Dispatcher(connectionPool);
 
     // This class method should be factorized.
     private final CoreBackendServerConfiguration withConfiguration () {
@@ -73,6 +75,7 @@ public class CoreBackendServer implements Runnable
         while ( !topToStop ) {
             try {
                 logger.trace("{} {}", topToStop, connectionPool.available());
+                /*
                 // WOW CAUTION : Be sure I AM the ONLY instance of this class in that JAVA process ...
                 if (0 < connectionPool.available()) {
                     final Socket accept = coreServerSocket.accept();
@@ -87,7 +90,24 @@ public class CoreBackendServer implements Runnable
                                     this);
 
                     requestHandlers.add(requestHandler);
+                }*/
+                // ───────────────────────────────────────────────────────────────────
+                try {
+                    // Tjr accept, meme si not available()
+                    final Socket client = coreServerSocket.accept();
+                    Connection conn = connectionPool.get();
+                    RequestHandler handler = new RequestHandler(
+                            client,
+                            conn,
+                            requestHandlerCreatedSoFar++,
+                            this,
+                            dispatcher
+                    );
+                    requestHandlers.add(handler);
+                } catch (SocketTimeoutException e) {
+                    logger.trace("Timeout on accept: topToStop={}", topToStop);
                 }
+
             }
             catch (SocketTimeoutException es) {
                 logger.trace("Timeout on accept : topToStop = {}", topToStop) ;
@@ -117,6 +137,12 @@ public class CoreBackendServer implements Runnable
         requestHandlers.remove(requestHandler);
 
     }
+
+    public ConnectionPoolImpl getConnectionPool() {
+        return this.connectionPool;
+    }
+
+
     public synchronized void stop() {
         logger.trace("Stop() called within Core Backend Server ... ");
         topToStop = true;

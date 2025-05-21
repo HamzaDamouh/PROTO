@@ -34,6 +34,7 @@ public abstract class ClientRequest<N,S> implements Runnable {
     private final Request request;
     private final N info;
     private  S result;
+    private String errorMessage;
 
 
     public ClientRequest(final NetworkConfig networkConfig,
@@ -81,13 +82,16 @@ public abstract class ClientRequest<N,S> implements Runnable {
             final ObjectMapper mapper = new ObjectMapper();
             final Response response = mapper.readValue(inputData, Response.class);
             Object rawBody = response.getResponseBody();
+
             if (rawBody instanceof String) {
-                result = null;
+                this.errorMessage = (String) rawBody;
+                this.result = null;
             } else {
                 String json = mapper.writeValueAsString(rawBody);
-                result = readResult(json);
+                this.result = readResult(json);this.errorMessage = null;
 
             }
+
 
         } catch (IOException e) {
             logger.error("Connection fails, exception tells {} — {}", e.getMessage(), e.getClass());
@@ -113,4 +117,12 @@ public abstract class ClientRequest<N,S> implements Runnable {
     public final S getResult() {
         return result;
     }
+
+    public String getErrorMessage() {
+                return errorMessage;
+    }
+
+
 }
+
+

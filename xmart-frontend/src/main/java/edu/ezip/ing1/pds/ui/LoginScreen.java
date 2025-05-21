@@ -18,6 +18,8 @@ public class LoginScreen extends VBox {
     private final PasswordField passwordField = new PasswordField();
     private final Button loginButton = new Button("Log In");
     private final Button signupButton = new Button("Sign Up");
+    private final Button saturationButton = new Button("Saturation");
+
 
     private final Consumer<User> onLoginSuccess;
     private final UserClientService userClientService;
@@ -42,11 +44,15 @@ public class LoginScreen extends VBox {
 
         loginButton.setStyle("-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;");
         signupButton.setStyle("-fx-background-color: #81c784; -fx-text-fill: white; -fx-font-weight: bold;");
+        signupButton.setStyle("-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold;");
 
         loginButton.setOnAction(e -> login());
         signupButton.setOnAction(e -> MainUIController.switchToSignUp());
+        saturationButton.setOnAction(e -> MainUIController.switchToSaturation());
 
-        getChildren().addAll(title, emailField, passwordField, loginButton, signupButton);
+        getChildren().addAll(title, emailField, passwordField, loginButton, signupButton, saturationButton);
+
+
     }
 
     private void login() {
@@ -62,6 +68,9 @@ public class LoginScreen extends VBox {
             }
         }).start();
     }
+
+
+
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);

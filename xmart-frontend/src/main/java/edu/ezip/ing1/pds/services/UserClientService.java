@@ -4,12 +4,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import edu.ezip.ing1.pds.business.dto.User;
+import edu.ezip.ing1.pds.client.commons.ClientRequest;
 import edu.ezip.ing1.pds.client.commons.NetworkConfig;
 import edu.ezip.ing1.pds.commons.Request;
 import edu.ezip.ing1.pds.commons.Response;
 import edu.ezip.ing1.pds.requests.CreateUserClientRequest;
 import edu.ezip.ing1.pds.requests.LoginUserClientRequest;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -39,9 +43,14 @@ public class UserClientService {
         CreateUserClientRequest clientRequest = new CreateUserClientRequest(
                 networkConfig, 0, request, user, bytes);
         clientRequest.join();
-        if (clientRequest.getResult() == null) {
+        if (clientRequest.getErrorMessage() != null) {
+            throw new Exception(clientRequest.getErrorMessage());
+        }
+        User result = clientRequest.getResult();
+        if (result == null) {
             throw new Exception("Le serveur est indisponible.");
         }
+
         return clientRequest.getResult();
 
 
@@ -70,15 +79,21 @@ public class UserClientService {
                 networkConfig, 0, request, user, bytes);
         clientRequest.join();
 
-        User result = clientRequest.getResult();
 
 
-        if (result == null) {
-            throw new Exception("Échec de la connexion : le serveur est indisponible ou les identifiants sont incorrects.");
-        }
+        if (clientRequest.getErrorMessage() != null) {
+                    throw new Exception(clientRequest.getErrorMessage());
+               }
+          User result = clientRequest.getResult();
 
-
-
-        return clientRequest.getResult();
+                 if (result == null) {
+                  throw new Exception("mot de passe / email incorrect ou serveur est indisponible.");
+               }
+            return result;
     }
+
+
+
+
+
 }

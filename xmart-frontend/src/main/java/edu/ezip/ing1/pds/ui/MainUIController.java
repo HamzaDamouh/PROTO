@@ -42,6 +42,11 @@ public class MainUIController extends Application {
         rootPane.getChildren().add(new SignUpScreen(MainUIController::switchToProfile));
     }
 
+    public static void switchToSaturation() {
+        rootPane.getChildren().clear();
+        rootPane.getChildren().add(new SaturationScreen());
+    }
+
     public static void switchToMealPlan(User user) {
         rootPane.getChildren().clear();
         rootPane.getChildren().add(new MealPlanScreen(user));
